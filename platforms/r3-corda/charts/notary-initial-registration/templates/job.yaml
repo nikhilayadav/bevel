@@ -144,7 +144,7 @@ spec:
                        exit 1
                        else
                        echo "cryto materials are successfully stored in vault"
-                       break
+                       continue
                     fi
                   fi
                   COUNTER=`expr "$COUNTER" + 1`
