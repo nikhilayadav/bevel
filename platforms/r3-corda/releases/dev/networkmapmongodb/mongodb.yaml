@@ -1,0 +1,49 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mongodb-nmniki
+  annotations:
+    fluxcd.io/automated: "false"
+  namespace: snikila-ns
+spec:
+  replicaCount: 1
+  replicas: 1
+  releaseName: mongodb-nmniki
+  chart:
+    path: platforms/r3-corda/charts/mongodb-tls
+    git: https://github.com/nikhilayadav/bevel.git
+    ref: test
+  values:
+    nodeName: mongodb-nmniki
+    metadata:
+      namespace: snikila-ns
+    image:
+      containerName: mongo:3.6.6
+      imagePullSecret: regcred
+      initContainerName: adopblockchaincloud0502.azurecr.io/alpine-utils:1.0
+    storage:
+      memory: 512Mi
+      name: awsstorageclass
+      mountPath: /data/db
+      volname: hostvol
+    vault:
+      address: http://vault.internal.dev2.aws.blockchaincloudpoc-develop.com:20001
+      role: vault-role
+      authpath: cordanmniki
+      secretprefix: nmniki/data/credentials/mongodb
+      serviceaccountname: vault-auth
+      certsecretprefix: nmniki/data/certs
+    service:
+      tcp:
+          port: 27017
+          targetPort: 27017
+      type: NodePort
+      annotations: {}
+    deployment:
+      annotations: {}
+    pvc:
+      annotations: {}
+    mongodb:
+      username: nmniki
+    cluster:
+      enabled: false
