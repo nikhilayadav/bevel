@@ -1,0 +1,109 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: notary1-initial-registration
+  annotations:
+    fluxcd.io/automated: "false"
+  namespace: snikila-ns
+spec:
+  releaseName: notary1-initial-registration
+  chart:
+    path: platforms/r3-corda/charts/notary-initial-registration
+    git: https://github.com/nikhilayadav/bevel.git
+    ref: test
+  values:
+    nodeName: notary1
+    replicas: 1
+    metadata:
+      namespace: snikila-ns  
+    image:
+      containerName: adopblockchaincloud0502.azurecr.io/corda:4.7-linuxkit
+      initContainerName: adopblockchaincloud0502.azurecr.io/alpine-utils:1.0
+      imagePullSecret: regcred
+      privateCertificate: true
+      doormanCertAlias: dniki.rc.dev2.aws.blockchaincloudpoc-develop.com
+      networkmapCertAlias: nmniki.rc.dev2.aws.blockchaincloudpoc-develop.com
+    nodeConf:
+      p2p:
+        url: notary1.snikila-ns
+        port: 10002
+      ambassadorAddress: notary1.rc.dev2.aws.blockchaincloudpoc-develop.com:15051
+      rpcSettings:
+        useSsl: false
+        standAloneBroker: false
+        address: "0.0.0.0:10003"
+        adminAddress: "0.0.0.0:10005"
+        ssl:
+          certificatesDirectory: na-ssl-false
+          sslKeystorePath: na-ssl-false
+          trustStoreFilePath: na-ssl-false
+      legalName: O=Notary,OU=Notary,L=London,C=GB #use peer-node level subject for legalName
+      messagingServerAddress:
+      jvmArgs:
+      systemProperties:
+      sshd:
+        port:
+      exportJMXTo:
+      transactionCacheSizeMegaBytes: 8
+      attachmentContentCacheSizeMegaBytes: 10
+      attachmentCacheBound: 1024
+            
+      notary:
+        validating: True
+        serviceLegalName: O=Notary Service,OU=Notary,L=London,C=GB
+       
+      detectPublicIp: false
+      database:
+        exportHibernateJMXStatistics: false
+      dbUrl: notary1db
+      dbPort: 9101
+      dataSourceClassName: "org.h2.jdbcx.JdbcDataSource"
+      dataSourceUrl: "jdbc:h2:tcp://notary1db:9101/persistence;DB_CLOSE_ON_EXIT=FALSE;LOCK_TIMEOUT=10000;WRITE_DELAY=100;AUTO_RECONNECT=TRUE;"
+      jarPath: "/data/corda-workspace/h2/bin"
+      networkMapURL: https://nmniki.rc.dev2.aws.blockchaincloudpoc-develop.com
+      doormanURL: https://dniki.rc.dev2.aws.blockchaincloudpoc-develop.com
+      compatibilityZoneURL:
+      jarVersion: 4.7
+      devMode: false
+      env:
+        - name: JAVA_OPTIONS
+          value: -Xmx512m
+        - name: CORDA_HOME
+          value: /opt/corda
+        - name: BASE_DIR
+          value: /base/corda
+    credentials:
+      dataSourceUser: sa
+      rpcUser:
+        - name: notary1operations
+          permissions: [ALL]
+
+    volume:
+      baseDir: /base/corda
+    resources:
+      limits: "512Mi"
+      requests: "512Mi"
+    
+    service:
+      type: ClusterIP
+      p2p:
+        port: 10002
+        targetPort: 10002
+      rpc:
+        port: 10003
+      rpcadmin:
+        port: 10005
+
+    vault:
+      address: http://vault.internal.dev2.aws.blockchaincloudpoc-develop.com:20001
+      role: vault-role
+      authpath: cordanotary1
+      serviceaccountname: vault-auth
+      dbsecretprefix: notary1/data/credentials/database
+      rpcusersecretprefix: notary1/data/credentials/rpcusers
+      keystoresecretprefix: notary1/data/credentials/keystore
+      certsecretprefix: notary1/data/certs
+        
+    healthcheck:
+      readinesscheckinterval: 10
+      readinessthreshold: 15
