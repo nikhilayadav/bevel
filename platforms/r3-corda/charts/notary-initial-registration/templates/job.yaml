@@ -140,12 +140,12 @@ spec:
                     sleep {{ $.Values.healthcheck.readinessthreshold  }}
                     if [ "$COUNTER" -ge {{ $.Values.vault.retries }} ]
                     then
-                       echo "Retry attempted $COUNTER times, certificates have not been saved"
-                       exit 1
-                       COUNTER=`expr "$COUNTER" + 1`
-                       else
-                       echo "cryto materials are successfully stored in vault"
-                       continue
+                      echo "Retry attempted $COUNTER times, certificates have not been saved"
+                      exit 1
+                      COUNTER=`expr "$COUNTER" + 1`
+                      else
+                      echo "cryto materials are successfully stored in vault"
+                      continue
                     fi
                   fi
                 fi    
