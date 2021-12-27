@@ -1,0 +1,78 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: nmniki
+  annotations:
+    fluxcd.io/automated: "false"
+  namespace: snikila-ns
+spec:
+  releaseName: nmniki
+  chart:
+    path: platforms/r3-corda/charts/nms-tls
+    git: https://github.com/nikhilayadav/bevel.git
+    ref: test
+  values:
+    nodeName: nmniki
+    metadata:
+      namespace: snikila-ns
+    image:
+      authusername: sa
+      containerName: adopblockchaincloud0502.azurecr.io/networkmap-linuxkit:latest
+      env:
+      - name: NETWORKMAP_PORT
+        value: 8080
+      - name: NETWORKMAP_ROOT_CA_NAME
+        value: CN=Network Map,OU=FRA,O=FRA,L=Berlin,C=DE
+      - name: NETWORKMAP_TLS
+        value: true
+      - name: NETWORKMAP_DB
+        value: /opt/networkmap/db
+      - name: DB_USERNAME
+        value: nmniki
+      - name: NETWORKMAP_AUTH_USERNAME
+        value: sa
+      - name: DB_URL
+        value: mongodb-nmniki
+      - name: DB_PORT
+        value: 27017
+      - name: DATABASE
+        value: admin
+      - name: NETWORKMAP_CACHE_TIMEOUT
+        value: 60S
+      - name: NETWORKMAP_MONGOD_DATABASE
+        value: networkmap
+      imagePullSecret: regcred
+      tlsCertificate: true
+      initContainerName: adopblockchaincloud0502.azurecr.io/alpine-utils:1.0
+      mountPath:
+          basePath: /opt/networkmap
+    storage:
+      memory: 512Mi
+      mountPath: "/opt/h2-data"
+      name: awsstorageclass
+    vault:
+      address: http://vault.internal.dev2.aws.blockchaincloudpoc-develop.com:20001
+      role: vault-role
+      authpath: cordanmniki
+      serviceaccountname: vault-auth
+      secretprefix: nmniki
+      certsecretprefix: nmniki/data/certs
+      dbcredsecretprefix: nmniki/data/credentials/mongodb
+      secretnetworkmappass: nmniki/data/credentials/userpassword
+      tlscertsecretprefix: nmniki/data/tlscerts
+      dbcertsecretprefix: nmniki/data/certs
+    healthcheck:
+      readinesscheckinterval: 10
+      readinessthreshold: 15
+      dburl: mongodb-nmniki:27017
+    service:
+      port: 8080
+      targetPort: 8080
+      type: ClusterIP
+      annotations: {}
+    deployment:
+      annotations: {}
+    pvc:
+      annotations: {}
+    ambassador:
+      external_url_suffix: rc.dev2.aws.blockchaincloudpoc-develop.com
