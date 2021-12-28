@@ -122,7 +122,7 @@ spec:
             cd ${BASE_DIR}/certificates
             while [ "$COUNTER" -lt {{ $.Values.healthcheck.readinessthreshold }} ]
             do
-                 if [ -e nodekeystore.jks ] && [ -e sslkeystore.jks ] && [ -e truststore.jks ] && [ -e done.txt ]
+                if [ -e nodekeystore.jks ] && [ -e sslkeystore.jks ] && [ -e truststore.jks ] && [ -e done.txt ]
                 then
                   echo "found certificates, performing vault put"
                   (echo '{"data": {"nodekeystore.jks": "'; base64 ${BASE_DIR}/certificates/nodekeystore.jks; echo '"}}') | curl -H "X-Vault-Token: ${VAULT_TOKEN}" -d @- ${VAULT_ADDR}/v1/${CERTS_SECRET_PREFIX}/nodekeystore
