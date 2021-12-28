@@ -109,7 +109,7 @@ spec:
       rpcusersecretprefix: {{ component_name }}/data/credentials/rpcusers
       keystoresecretprefix: {{ component_name }}/data/credentials/keystore
       certsecretprefix: {{ component_name }}/data/certs
-        
+      retires : 10
     healthcheck:
       readinesscheckinterval: 10
       readinessthreshold: 15

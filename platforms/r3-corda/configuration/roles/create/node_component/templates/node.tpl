@@ -133,7 +133,7 @@ spec:
       certsecretprefix: {{ component_name }}/data/certs
       networkmapsecretprefix: {{ component_name }}/data/credentials/networkmappassword
       cordappsreposecretprefix: {{ component_name }}/data/credentials/cordapps
-
+      retires : 10
           
     healthcheck:
       readinesscheckinterval: 20
