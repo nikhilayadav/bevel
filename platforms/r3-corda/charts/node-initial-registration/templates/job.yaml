@@ -148,7 +148,7 @@ spec:
                     fi
                   fi
                   COUNTER=`expr "$COUNTER" + 1`
-                fi    
+                fi 
             done
           volumeMounts:
           - name: node-volume

@@ -114,7 +114,6 @@ spec:
             # setting up env to get secrets from vault
             KUBE_SA_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
             VAULT_TOKEN=$(curl -sS --request POST ${VAULT_ADDR}/v1/auth/${KUBERNETES_AUTH_PATH}/login -H "Content-Type: application/json" -d '{"role":"'"${VAULT_APP_ROLE}"'","jwt":"'"${KUBE_SA_TOKEN}"'"}' | jq -r 'if .errors then . else .auth.client_token end')
-           
             # perform check if certificates are ready or not, and upload certificate into vault when ready
             COUNTER=1
             cd ${BASE_DIR}/certificates
@@ -148,7 +147,6 @@ spec:
                   COUNTER=`expr "$COUNTER" + 1`
                 fi   
             done
-
           volumeMounts:
           - name: node-volume
             mountPath: "{{ $.Values.volume.baseDir }}"
