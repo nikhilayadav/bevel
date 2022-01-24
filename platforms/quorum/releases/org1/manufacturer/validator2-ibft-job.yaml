@@ -1,0 +1,31 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: validator2-ibft-job
+  namespace: manufacturer-quo
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: validator2-ibft-job
+  chart:
+    git: https://github.com/nikhilayadav/bevel.git
+    ref: test
+    path: platforms/quorum/charts/crypto_ibft
+  values:
+    peer:
+      name: validator2
+      gethPassphrase: 12345
+    metadata:
+      name: validator2-ibft-job
+      namespace: manufacturer-quo
+    image:
+      initContainerName: adopblockchaincloud0502.azurecr.io/alpine-utils:1.0
+      node: quorumengineering/quorum:21.4.2
+      pullPolicy: Always
+    acceptLicense: YES
+    vault:
+      address: http://vault.internal.dev2.aws.blockchaincloudpoc-develop.com:20001
+      role: vault-role
+      authpath: quorummanufacturer
+      serviceaccountname: vault-auth
+      certsecretprefix: secretsv2/data/manufacturer-quo
