@@ -1,0 +1,86 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: carriercarrieribft
+  namespace: carrier-bes
+  annotations:
+    flux.weave.works/automated: "false"
+spec:
+  releaseName: carriercarrieribft
+  chart:
+    git: https://github.com/nikhilayadav/bevel.git
+    ref: sample
+    path: platforms/hyperledger-besu/charts/node_orion 
+  values:
+    replicaCount: 1
+
+    healthcheck:
+      readinessthreshold: 100
+      readinesscheckinterval: 5
+
+    staticnodes:
+      - "enode://0bd3832a4b8f8b066bfa67afa5d4d854319a3dfc0d781b276ea392cf820f0e5a03024f228a15df26ac08bb24221531f8834d55f4918c6a813094138199b45115@validator1.rc.dev2.aws.blockchaincloudpoc-develop.com:15041"
+      - "enode://6affd18e8d1511964540c17920d7d6b811b9ad88c96ffd11ae71e89485416c9a8a43df91910cffad342d04a8b7beb9c4c9eaac87254dda1c9b41778ae0a16afa@validator2.rc.dev2.aws.blockchaincloudpoc-develop.com:15043"
+      - "enode://1f5469d86c42a81b99cd2bd856c56506e2588e112662864f2dc5e0bf97d5e70f4961707b6cb0c6efab938024a338920581e6bea490461614c3dbf9c2e0fae806@validator3.rc.dev2.aws.blockchaincloudpoc-develop.com:15045"
+      - "enode://73741b866bcb2e07aeb94fcc1d54e96eb99b0998a09076f1831e2775ac6b5df350bb76b7802719f569107c0361076617c154068a1f81340dc5337a46d59998a6@validator4.rc.dev2.aws.blockchaincloudpoc-develop.com:15047"
+      - "enode://6bb97c5bf07472373876794a32d5fac61703de976d23f5c930875a2922a71814a0a9a68058afb54eaa8f58ec25faedc44cd79a309f417dcf932212bee22779ab@carrier.rc.dev2.aws.blockchaincloudpoc-develop.com:15049"
+      - "enode://9224f402a6b3eb4cf57c013f816328d2668c975c151f7fea9fe660529435daf6dba063d6ddd16ed646546d8967ce178d8c4c9ffe23385a66b64ab21e2792195b@manufacturer.rc.dev2.aws.blockchaincloudpoc-develop.com:15052"
+      - "enode://299940a28b9fc46fe4f65c8e808dd1556406f3067f5898106a85518c8aee021351c2cd5d9a2802800d4f89f7a7572858d1f68e63e4d47404b6f3356e2df122fb@store.rc.dev2.aws.blockchaincloudpoc-develop.com:15055"
+
+    metadata:
+      namespace: carrier-bes
+      labels:
+
+    liveliness_check:
+      enabled: false
+ 
+    proxy:
+      provider: ambassador
+      external_url: carrier.rc.dev2.aws.blockchaincloudpoc-develop.com
+      p2p: 15049
+      rpc: 15050
+      tmport: 15051
+
+    images:
+      node: hyperledger/besu:21.10.6
+      alpineutils: hyperledgerlabs/alpine-utils:1.0
+      orion: pegasyseng/orion:1.6.0
+
+    node:
+      name: carrier
+      consensus: ibft
+      subject: O=Carrier,OU=Carrier,L=51.50/-0.13/London,C=GB
+      mountPath: /opt/besu/data
+      servicetype: ClusterIP
+      imagePullSecret: regcred
+      ports:
+        p2p: 30303
+        rpc: 8545
+        ws: 8546
+
+    orion:
+      name: orion
+      tls: True
+      confdir: /etc/config
+      url: "https://carrier.rc.dev2.aws.blockchaincloudpoc-develop.com"
+      nodelist: "\"https://manufacturer.rc.dev2.aws.blockchaincloudpoc-develop.com:15054\",\"https://store.rc.dev2.aws.blockchaincloudpoc-develop.com:15057\",\"https://carrier.rc.dev2.aws.blockchaincloudpoc-develop.com\""
+      trust: ca-or-tofu
+      ports:
+        nodeport: 15051
+        clientport: 8888
+
+    storage:
+      storageclassname: awsstorageclass
+      storagesize: 1Gi
+
+    vault:
+      address: http://vault.internal.dev2.aws.blockchaincloudpoc-develop.com:20001
+      secretprefix: secretsv2/data/carrier-bes/crypto/carrier
+      serviceaccountname: vault-auth
+      keyname: data
+      tmdir: tm
+      tlsdir: tls
+      role: vault-role
+      authpath: besucarrier
+
+    genesis: ewogICJjb25maWciOiB7CiAgICAiY2hhaW5JZCI6IDIwMTgsCiAgICAiY29uc3RhbnRpbm9wbGVmaXhibG9jayI6IDAsCiAgICAiY29udHJhY3RTaXplTGltaXQiOiAyMTQ3NDgzNjQ3LAogICAgImliZnQyIjogewogICAgICAiYmxvY2twZXJpb2RzZWNvbmRzIjogMiwKICAgICAgImVwb2NobGVuZ3RoIjogMzAwMDAsCiAgICAgICJyZXF1ZXN0dGltZW91dHNlY29uZHMiOiAxMAogICAgfQogIH0sCiAgIm5vbmNlIjogIjB4MCIsCiAgInRpbWVzdGFtcCI6ICIweDU4ZWU0MGJhIiwKICAiZ2FzTGltaXQiOiAiMHgxZmZmZmZmZmZmZmZmZiIsCiAgImRpZmZpY3VsdHkiOiAiMHgxIiwKICAiZXh0cmFEYXRhIjogIjB4Zjg3ZWEwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMGY4NTQ5NDcxYmU3YTMyYTRkMzdjYjRmOWU1YWFhZjFhNDVhMzQxNmRkZGIzMjI5NDFkOTcxYWQ2NzZkNmQ4YTdlMjdmMTU5ZTBhOGU5ZmJiODcxNWU0NDM5NDQ4YTRiMzdmYWNhMzllYmIzYmQ0OGYyMDI4ZGI5NzA5MGUxNmM3ZDc5NDhlYmIyYmQxYjcwYTJmNjViYmVlOGEyYTQyY2UxZWVmMTFlOTI4OWQ4MDg0MDAwMDAwMDBjMCIKfQ==
