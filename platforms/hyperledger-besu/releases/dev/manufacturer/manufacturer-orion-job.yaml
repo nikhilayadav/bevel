@@ -1,0 +1,26 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: manufacturer-orion-job
+  namespace: manufacturer-bes
+  annotations:
+    flux.weave.works/automated: "false"
+spec:
+  releaseName: manufacturer-orion-job
+  chart:
+    path: platforms/hyperledger-besu/charts/orion_key_mgmt
+    git: https://github.com/nikhilayadav/bevel.git
+    ref: sample
+  values:
+    metadata:
+      name: manufacturer-orion-job
+      namespace: manufacturer-bes    
+    image:      
+      repository: pegasyseng/orion:1.6.0
+      pullSecret: regcred
+    vault:
+      address: http://vault.internal.dev2.aws.blockchaincloudpoc-develop.com:20001
+      authpath: besumanufacturer
+      role: vault-role
+      serviceaccountname: vault-auth
+      tmprefix: secretsv2/data/manufacturer-bes/crypto/manufacturer/tm
