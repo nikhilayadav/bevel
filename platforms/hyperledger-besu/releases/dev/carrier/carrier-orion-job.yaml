@@ -1,0 +1,26 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: carrier-orion-job
+  namespace: carrier-bes
+  annotations:
+    flux.weave.works/automated: "false"
+spec:
+  releaseName: carrier-orion-job
+  chart:
+    path: platforms/hyperledger-besu/charts/orion_key_mgmt
+    git: https://github.com/nikhilayadav/bevel.git
+    ref: sample
+  values:
+    metadata:
+      name: carrier-orion-job
+      namespace: carrier-bes    
+    image:      
+      repository: pegasyseng/orion:1.6.0
+      pullSecret: regcred
+    vault:
+      address: http://vault.internal.dev2.aws.blockchaincloudpoc-develop.com:20001
+      authpath: besucarrier
+      role: vault-role
+      serviceaccountname: vault-auth
+      tmprefix: secretsv2/data/carrier-bes/crypto/carrier/tm
