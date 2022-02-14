@@ -1,0 +1,86 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: manufacturermanufactureribft
+  namespace: manufacturer-bes
+  annotations:
+    flux.weave.works/automated: "false"
+spec:
+  releaseName: manufacturermanufactureribft
+  chart:
+    git: https://github.com/nikhilayadav/bevel.git
+    ref: sample
+    path: platforms/hyperledger-besu/charts/node_orion 
+  values:
+    replicaCount: 1
+
+    healthcheck:
+      readinessthreshold: 100
+      readinesscheckinterval: 5
+
+    staticnodes:
+      - "enode://4463e3f077e470f385c3d1099cacd5bde090a82ab40847d5a8741e575c8562dcfb12215ddbda28b6cb032bce60b245e4827554025f5860feaba57fa42d66a538@validator1.rc.dev2.aws.blockchaincloudpoc-develop.com:15041"
+      - "enode://193364e130fdc43316a5a53e774095f46f9ede5101187b6c6421789cc23cc71d08a6ec4579c20a4d13caecc25ea71686a27055b46901c6fcf784883af7b3eda8@validator2.rc.dev2.aws.blockchaincloudpoc-develop.com:15043"
+      - "enode://606291061aa93937b2fc18fbaad596b064659d004c7756548ec42784c21aaaea9790301cf2c0fd9d765665b6aa6ad1aec531464374d880d26faee2e2648ce06b@validator3.rc.dev2.aws.blockchaincloudpoc-develop.com:15045"
+      - "enode://016a73dd5326572748d8551a7093d3c453a905174a76dcb3595572b7b42080592f2c889bd62eef9493f82c9aa82970f79b88d6125875444dd7a51522fcdf2b9e@validator4.rc.dev2.aws.blockchaincloudpoc-develop.com:15047"
+      - "enode://b97436686f013dbf02a976c1ff32873c7b7e289ba960a418f2e22afaf9e20a7cceb56c59d4e2347376a6182c550541129eace40bff109de5eb7977f275f1ea44@carrier.rc.dev2.aws.blockchaincloudpoc-develop.com:15049"
+      - "enode://c2aa0d45db81a2569e5227dfb39740bb9ecf1667a7a5fe4e05582b5ff0da77978a16b32924f3dba48eece5f8ecae31854e55cd48e6fcc7f1c3d030f3e8845681@manufacturer.rc.dev2.aws.blockchaincloudpoc-develop.com:15052"
+      - "enode://396f75acaf5c0d4377d4502aee9e992d2d74a323fe2c7f456130b00559854398802806378b8af329d2106485e4aaca23bef8cf12e035e75e189c3c7d10a823e4@store.rc.dev2.aws.blockchaincloudpoc-develop.com:15055"
+
+    metadata:
+      namespace: manufacturer-bes
+      labels:
+
+    liveliness_check:
+      enabled: false
+ 
+    proxy:
+      provider: ambassador
+      external_url: manufacturer.rc.dev2.aws.blockchaincloudpoc-develop.com
+      p2p: 15052
+      rpc: 15053
+      tmport: 15054
+
+    images:
+      node: hyperledger/besu:21.10.6
+      alpineutils: hyperledgerlabs/alpine-utils:1.0
+      orion: pegasyseng/orion:1.6.0
+
+    node:
+      name: manufacturer
+      consensus: ibft
+      subject: O=Manufacturer,OU=Manufacturer,L=47.38/8.54/Zurich,C=CH
+      mountPath: /opt/besu/data
+      servicetype: ClusterIP
+      imagePullSecret: regcred
+      ports:
+        p2p: 30303
+        rpc: 8545
+        ws: 8546
+
+    orion:
+      name: orion
+      tls: True
+      confdir: /etc/config
+      url: "https://manufacturer.rc.dev2.aws.blockchaincloudpoc-develop.com"
+      nodelist: "\"https://carrier.rc.dev2.aws.blockchaincloudpoc-develop.com:15051\",\"https://store.rc.dev2.aws.blockchaincloudpoc-develop.com:15057\""
+      trust: ca-or-tofu
+      ports:
+        nodeport: 15054
+        clientport: 8888
+
+    storage:
+      storageclassname: awsstorageclass
+      storagesize: 1Gi
+
+    vault:
+      address: http://vault.internal.dev2.aws.blockchaincloudpoc-develop.com:20001
+      secretprefix: secretsv2/data/manufacturer-bes/crypto/manufacturer
+      serviceaccountname: vault-auth
+      keyname: data
+      tmdir: tm
+      tlsdir: tls
+      role: vault-role
+      authpath: besumanufacturer
+
+    genesis: ewogICJjb25maWciOiB7CiAgICAiY2hhaW5JZCI6IDIwMTgsCiAgICAiY29uc3RhbnRpbm9wbGVmaXhibG9jayI6IDAsCiAgICAiY29udHJhY3RTaXplTGltaXQiOiAyMTQ3NDgzNjQ3LAogICAgImliZnQyIjogewogICAgICAiYmxvY2twZXJpb2RzZWNvbmRzIjogMiwKICAgICAgImVwb2NobGVuZ3RoIjogMzAwMDAsCiAgICAgICJyZXF1ZXN0dGltZW91dHNlY29uZHMiOiAxMAogICAgfQogIH0sCiAgIm5vbmNlIjogIjB4MCIsCiAgInRpbWVzdGFtcCI6ICIweDU4ZWU0MGJhIiwKICAiZ2FzTGltaXQiOiAiMHgxZmZmZmZmZmZmZmZmZiIsCiAgImRpZmZpY3VsdHkiOiAiMHgxIiwKICAiZXh0cmFEYXRhIjogIjB4Zjg3ZWEwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMGY4NTQ5NGQ2YmMwYTE0OGM3ZjNiY2M0YTg4MmU1MjM5YWRlYmI3MTIxYTA0NmM5NDQ3MGNkODczM2FjNmUwNDlmODQxY2M0NjgxZGM4ZjQ2YTc0MmEyOTM5NDY2NTIxMjVmZWRmZDU0YzRlOTI0N2VjOWFkY2NlNDYxNGJhZTlmN2E5NGE0YjE1NDM4MGYzN2EzOWFhYmI3ZDEzMDI4ODNiMWYxYThjOTdlOWY4MDg0MDAwMDAwMDBjMCIKfQ==
