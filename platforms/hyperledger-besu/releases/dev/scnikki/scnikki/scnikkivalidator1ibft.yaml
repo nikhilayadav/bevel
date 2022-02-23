@@ -1,0 +1,82 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: scnikkivalidator1ibft
+  namespace: scnikki-bes
+  annotations:
+    flux.weave.works/automated: "false"
+spec:
+  releaseName: scnikkivalidator1ibft
+  chart:
+    git: https://github.com/nikhilayadav/bevel.git
+    ref: develop
+    path: platforms/hyperledger-besu/charts/node_validator 
+  values:
+    replicaCount: 1
+
+    healthcheck:
+      readinessthreshold: 100
+      readinesscheckinterval: 5
+
+    staticnodes:
+      - "enode://0e8160fc669cee0d262909d934596e3e341da76f741e928fcab3931c578031a808cb9a9f09fb35ac648af033646255ce0da67bd3276ec91987de2381edf7ed6b@validator1.rc.dev2.aws.blockchaincloudpoc-develop.com:15041"
+      
+      - "enode://4c4d3265b00a88917577b444d335d5df218c9b71a39e97335e62220a6d54704ece4ee2e3a6dea5ec59c94e5505333b75520e81c6a7bf0867bb99f9d194e5a3c8@validator2.rc.dev2.aws.blockchaincloudpoc-develop.com:15043"
+      
+      - "enode://7dafb48414030e001d4dd0ed2a5597ca11793bed03aec2986c93bae6d67e85317e7837d8c7a93c4e6f1d2ec037236bd1326008502c0a82b3b64dde58c7bbec6d@validator3.rc.dev2.aws.blockchaincloudpoc-develop.com:15045"
+      
+      - "enode://a1d978daf72a977a5b3c4ae5a0de938cb9a36b8542e3cde51c66195a6fe1d13388c65aa14ad1bb0fe190671711d91373e770fb1bf0ac610a552d39f673468f7b@validator4.rc.dev2.aws.blockchaincloudpoc-develop.com:15047"
+      
+      - "enode://060d6fbe9fa337a119f31ce5cbecc55d4780e24fd0604a3dbdc5a0f15c0192d6ff9a7239061e3b4fe2b12bfe2198326b82868a5f15bf980b43a640c677e1c529@cnikki.rc.dev2.aws.blockchaincloudpoc-develop.com:15049"
+      
+      - "enode://5ac176d50dd41d46375112a1ed6d2bacf842c125c78eab4bc51771aaf91257fcce70f92c9e38f6e90e7b9cfb17ae908fdf1b65a0dc46eb6acddc33d01d752a05@mnikki.rc.dev2.aws.blockchaincloudpoc-develop.com:15052"
+      
+      - "enode://fe5dfc7b07c2b0b5ae995489c5157ca1d6d2d8b759048c38f20b2ff3b2a30c561a8ba3de4376eec758f86ab5769d485152214a5e9021fd5243a9043e21dfd664@snikki.rc.dev2.aws.blockchaincloudpoc-develop.com:15055"
+      
+
+    metadata:
+      namespace: scnikki-bes
+      labels:
+
+    ambassador:
+      external_url_suffix: rc.dev2.aws.blockchaincloudpoc-develop.com
+
+    liveliness_check:
+      enabled: false
+ 
+    proxy:
+      provider: ambassador
+      external_url: scnikki.rc.dev2.aws.blockchaincloudpoc-develop.com
+      p2p: 15041
+      rpc: 15042
+
+    images:
+      node: hyperledger/besu:21.10.6
+      alpineutils: hyperledgerlabs/alpine-utils:1.0
+
+    node:
+      name: validator1
+      tls: True
+      consensus: ibft
+      mountPath: /opt/besu/data
+      servicetype: ClusterIP
+      imagePullSecret: regcred
+      ports:
+        p2p: 30303
+        rpc: 8545
+        ws: 8546
+
+    storage:
+      storageclassname: awsstorageclass
+      storagesize: 1Gi
+
+    vault:
+      address: http://vault.internal.dev2.aws.blockchaincloudpoc-develop.com:20001
+      secretprefix: secretsv2/data/scnikki-bes/crypto/validator1
+      serviceaccountname: vault-auth
+      keyname: data
+      tlsdir: tls
+      role: vault-role
+      authpath: besuscnikki
+
+    genesis: ewogICJjb25maWciOiB7CiAgICAiY2hhaW5JZCI6IDIwMTgsCiAgICAiY29uc3RhbnRpbm9wbGVmaXhibG9jayI6IDAsCiAgICAiY29udHJhY3RTaXplTGltaXQiOiAyMTQ3NDgzNjQ3LAogICAgImliZnQyIjogewogICAgICAiYmxvY2twZXJpb2RzZWNvbmRzIjogMiwKICAgICAgImVwb2NobGVuZ3RoIjogMzAwMDAsCiAgICAgICJyZXF1ZXN0dGltZW91dHNlY29uZHMiOiAxMAogICAgfQogIH0sCiAgIm5vbmNlIjogIjB4MCIsCiAgInRpbWVzdGFtcCI6ICIweDU4ZWU0MGJhIiwKICAiZ2FzTGltaXQiOiAiMHgxZmZmZmZmZmZmZmZmZiIsCiAgImRpZmZpY3VsdHkiOiAiMHgxIiwKICAiZXh0cmFEYXRhIjogIjB4Zjg3ZWEwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMGY4NTQ5NGNmNGVmNjc2MmIzMzk5MjRiM2UyNGIwZjVhOWM2YjI4ODBiMzdiNTE5NDRiNDYwYWM4YWY3N2EwZjk2NmNkMjAyNjM2MzcyYjVhM2VkMGIwYTc5NDZiMmEwZDJkNDg1YThkMmQ0MWJmNjI1MjIzODgwMjIwYzM3ZTY4NDE5NDE1MzUwMGVlZWFiMmRhMDk0MzBkMjk2NWQ1YjE4NDE5M2FiZDc3Mzk4MDg0MDAwMDAwMDBjMCIKfQ==
