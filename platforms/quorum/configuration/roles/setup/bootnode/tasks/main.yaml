@@ -16,20 +16,12 @@
     path: "{{ bin_install_dir }}/quorum"
   register: quorum_stat_result
 
-# This task clones the quorum git repository
-- name: Clone the git repo
-  git:
-    repo: "{{ bootnode.repo }}"
-    version: master
-    force: yes
+# This task downloads the bootnode tar 
+- name: Download bootnode tar 
+  get_url:
+    url: "https://gethstore.blob.core.windows.net/builds/geth-alltools-linux-amd64-1.10.0-56dec25a.tar.gz"
     dest: "{{ bin_install_dir }}/quorum"
-  when: not ( quorum_stat_result.stat.exists and bootnode_stat_result.stat.exists )
-
-# This task builds the bootnode binary
-- name: Make bootnode
-  make:
-    chdir: "{{ bin_install_dir }}/quorum"
-    target: bootnode
+    mode: 0777
   when: bootnode_stat_result.stat.exists == False
 
 # This task creates the bin directory, if it doesn't exist
@@ -39,11 +31,20 @@
     state: directory
   when: bootnode_stat_result.stat.exists == False
 
+# This task extract the bootnode tarball
+- name: Extract the bootnode tarball
+  unarchive:
+    src: "{{ bin_install_dir }}/quorum/geth-alltools-linux-amd64-1.10.0-56dec25a.tar.gz"
+    dest: "{{ bin_install_dir }}/bootnode"
+    copy: no
+  become: yes
+  when: bootnode_stat_result.stat.exists == False
+
 # This task puts the bootnode binary to the bin directory created in the above task
 - name: Copy bootnode binary to destination directory
   copy:
-    src: "{{ bin_install_dir }}/quorum/build/bin/bootnode"
+    src: "{{ bin_install_dir }}/bootnode/geth-alltools-linux-amd64-1.10.0-56dec25a"
     dest: "{{ bin_install_dir }}/bootnode"
-    mode: 0755
+    mode: 0777
     remote_src: yes
   when: bootnode_stat_result.stat.exists == False
