@@ -1,0 +1,39 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: wnik-ibft-job
+  namespace: wnik-quo
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: wnik-ibft-job
+  chart:
+    git: https://github.com/nikhilayadav/bevel.git
+    ref: sample
+    path: platforms/quorum/charts/crypto_ibft
+  values:
+    peer:
+      name: wnik
+      gethPassphrase: 12345
+    metadata:
+      name: wnik-ibft-job
+      namespace: wnik-quo
+    image:
+      initContainerName: index.docker.io/hyperledgerlabs/alpine-utils:1.0
+      node: quorumengineering/quorum:21.4.2
+      pullPolicy: Always
+    acceptLicense: YES
+    vault:
+      address: http://vault.internal.dev2.aws.blockchaincloudpoc-develop.com:20001
+      role: vault-role
+      authpath: quorumwnik
+      serviceaccountname: vault-auth
+      certsecretprefix: secretsv2/data/wnik-quo
+      retries: 30
+    healthCheckNodePort: 0
+    sleepTimeAfterError: 60
+    sleepTime: 10
+    healthcheck:
+      readinesscheckinterval: 10
+      readinessthreshold: 1
+
