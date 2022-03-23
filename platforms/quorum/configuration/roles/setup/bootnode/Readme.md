@@ -14,7 +14,7 @@ This task check if bootnode is already installed or not
 **stat**: This module checks if bootnode is installed or not with path variable.
 
 ##### Output Variables
-    bootnode_stat_result: This variable stores the info on availibility on bootnode binary
+    bootnode_stat_result: This variable checks for the presence of file/directory.
 
 #### 2. Create bootnode directory
 This task creates the bootnode directory
@@ -22,7 +22,7 @@ This task creates the bootnode directory
 **stat**: This module creates the bootnode directory
 
 ##### Output Variables
-    bootnode_stat_result: This variable stores the info on availibility on bootnode binary
+    bootnode_stat_result: This variable checks for the presence of file/directory
 
 #### 3. Download bootnode tar
 This task downloads the bootnode tar
