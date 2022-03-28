@@ -13,7 +13,7 @@
 # This task will copy the binary to destination directory
 - name: Copy bootnode binary to destination directory
   copy:
-    src: "{{ bin_install_dir }}/geth-alltools-linux-amd64-1.10.0-56dec25a/bootnode"
+    src: "{{ tmp_directory.path }}/geth-alltools-linux-amd64-1.10.0-56dec25a/bootnode"
     dest: "{{ bin_install_dir }}"
     mode: 0755
     remote_src: yes

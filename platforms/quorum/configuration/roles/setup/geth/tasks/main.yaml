@@ -34,15 +34,15 @@
 # This task extracts the tar file containing the geth and bootnode binary
 - name: Extracts the tar file containing the geth and bootnode binary
   unarchive:
-    src: "{{ tmp_directory.path }}"
-    dest: "{{ bin_install_dir }}"
+    src: "{{ tmp_directory.path }}/geth-alltools-linux-amd64-1.10.0-56dec25a.tar.gz"
+    dest: "{{ tmp_directory.path }}"
     copy: no  
   when: geth_stat_result.stat.exists == False
 
 # This task puts the geth binary to the bin directory created in the above task 
 - name: Copy geth binary to destination directory
   copy:
-    src: "{{ bin_install_dir }}/geth-alltools-linux-amd64-1.10.0-56dec25a/geth"
+    src: "{{ tmp_directory.path }}/geth-alltools-linux-amd64-1.10.0-56dec25a/geth"
     dest: "{{ bin_install_dir }}"
     mode: 0755
     remote_src: yes
