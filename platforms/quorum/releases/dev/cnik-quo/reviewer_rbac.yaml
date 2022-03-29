@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: cniki-quo-role-tokenreview-binding
+  name: cnik-quo-role-tokenreview-binding
   namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -10,4 +10,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: vault-reviewer
-  namespace: cniki-quo
+  namespace: cnik-quo
