@@ -1,0 +1,85 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: wnikiwnikitessera
+  namespace: wniki-quo
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: wnikiwnikitessera
+  helmVersion: v3
+  chart:
+    git: https://github.com/nikhilayadav/bevel.git
+    ref: test
+    path: platforms/quorum/charts/node_tessera  
+  values:
+    replicaCount: 1
+    metadata:
+      namespace: wniki-quo
+      labels:
+    images:
+      node: quorumengineering/quorum:21.4.2
+      alpineutils: index.docker.io/hyperledgerlabs/alpine-utils:1.0
+      tessera: quorumengineering/tessera:hashicorp-21.7.3
+      busybox: busybox
+      mysql: mysql/mysql-server:5.7
+      pullPolicy: IfNotPresent
+    node:
+      name: wniki
+      status: default
+      consensus: raft
+      subject: O=Warehouse,OU=Warehouse,L=42.36/-71.06/Boston,C=US
+      mountPath: /etc/quorum/qdata
+      imagePullSecret: regcred
+      keystore: keystore_1
+      
+      servicetype: ClusterIP
+      lock: false
+      ports:
+        rpc: 8546
+        tm: 443
+        quorum: 21000
+        db: 3306
+      dbname: demodb
+      mysqluser: demouser
+    vault:
+      address: http://vault.internal.dev2.aws.blockchaincloudpoc-develop.com:20001
+      secretengine: secretsv2
+      tmsecretpath: wniki-quo/crypto/wniki/tm      
+      secretprefix: secretsv2/data/wniki-quo/crypto/wniki
+      serviceaccountname: vault-auth
+      keyname: quorum
+      tm_keyname: transaction
+      role: vault-role
+      authpath: quorumwniki
+    tessera:
+      dburl: "jdbc:mysql://wniki-tessera:3306/demodb"
+      dbusername: demouser
+      url: "https://wniki.rc.dev2.aws.blockchaincloudpoc-develop.com:443"
+      clienturl: "http://wniki-tessera:8888" #TODO: Enable tls strict for q2t
+      othernodes:
+        - url: https://cnik.rc.dev2.aws.blockchaincloudpoc-develop.com
+        - url: https://mnik.rc.dev2.aws.blockchaincloudpoc-develop.com
+        - url: https://snik.rc.dev2.aws.blockchaincloudpoc-develop.com
+        - url: https://wnik.rc.dev2.aws.blockchaincloudpoc-develop.com
+      tls: "STRICT"
+      trust: "TOFU"
+    genesis: ewogICAgImFsbG9jIjogewogICAgICAgICIxMDBkYTA5NTNjOTIxY2UxMDI3NjIwNTc2Y2ZiMThlMWVhYzRjMTJkIjogewogICAgICAgICAgICAiYmFsYW5jZSI6ICIxMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwIgogICAgICAgIH0sCiAgICAgICAgIjE0YTg0NjM3MTk1YmRkODI0MGY0NThjZWMwOTQ4YzI0NDcxZDNmOWUiOiB7CiAgICAgICAgICAgICJiYWxhbmNlIjogIjEwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAiCiAgICAgICAgfSwKICAgICAgICAiNDA0YWY0MzNlZDU1YmI2MzM5MjQ3NmQ3N2ZkYWIzYmE5ZmJjZWE0OCI6IHsKICAgICAgICAgICAgImJhbGFuY2UiOiAiMTAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIKICAgICAgICB9LAogICAgICAgICJhMjI3OTI3MTE0OGM1ZTRlZGZmYzk1NTcxNzQ2MWEzZmYwNGJiMzdiIjogewogICAgICAgICAgICAiYmFsYW5jZSI6ICIxMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwIgogICAgICAgIH0KICAgIH0sCiAgICAiY29pbmJhc2UiOiAiMHgwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwIiwKICAgICJjb25maWciOiB7CiAgICAgICAgImJ5emFudGl1bUJsb2NrIjogMCwKICAgICAgICAiY2hhaW5JZCI6IDEwLAogICAgICAgICJjb25zdGFudGlub3BsZUJsb2NrIjogMCwKICAgICAgICAiZWlwMTUwQmxvY2siOiAwLAogICAgICAgICJlaXAxNTBIYXNoIjogIjB4MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsCiAgICAgICAgImVpcDE1NUJsb2NrIjogMCwKICAgICAgICAiZWlwMTU4QmxvY2siOiAwLAogICAgICAgICJob21lc3RlYWRCbG9jayI6IDAsCiAgICAgICAgImlzUXVvcnVtIjogdHJ1ZSwKICAgICAgICAicGV0ZXJzYnVyZ0Jsb2NrIjogMCwKICAgICAgICAicmFmdFNlY29uZHMiOiB0cnVlLAogICAgICAgICJ0eG5TaXplTGltaXQiOiAxMjgKICAgIH0sCiAgICAiZGlmZmljdWx0eSI6ICIweDAiLAogICAgImV4dHJhRGF0YSI6ICIweDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAiLAogICAgImdhc0xpbWl0IjogIjB4RTAwMDAwMDAwMCIsCiAgICAibWl4aGFzaCI6ICIweDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwNjQ3NTcyNjE2YzY1Nzg3MzY1NjQ2YzY1NzgiLAogICAgIm5vbmNlIjogIjB4MCIsCiAgICAicGFyZW50SGFzaCI6ICIweDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAiLAogICAgInRpbWVzdGFtcCI6ICIweDAwIgp9
+    staticnodes: 
+      [
+    "enode://c2c068813aba8dbb306ea37c1adfdca6892f3b923e12c475731a657248c63971f77cb06a8603480be9121517bf95eddae7e0ecce0228fad2039ac751874bec6e@cniki.rc.dev2.aws.blockchaincloudpoc-develop.com:15041?discport=0&raftport=15043",
+    "enode://248e1c3d8dc5533f6d42bdd7d285f9c4b1d05e94ba2bae1a2da1bbd528617c848710970fb891ae26cac488bd4c4cbea0e90794882bb073965769a4997e006259@mniki.rc.dev2.aws.blockchaincloudpoc-develop.com:15044?discport=0&raftport=15046",
+    "enode://bd96a678e978162e4c7bfe01640f6748c37f39a47db3616dfdbb547adb1108155ee3aa55248a5294b385b4b09345c856b19a98ba4b6762caa30c2b266a6072ec@sniki.rc.dev2.aws.blockchaincloudpoc-develop.com:15047?discport=0&raftport=15049",
+    "enode://3373d87c72ddc6aae29f8f77ae0fb724e68811ee01a7f58e5021a47b6709db21c2764ff66d23718bb6cf5c3de53173b3b6999fad86ae172d1307dd767f9804dc@wniki.rc.dev2.aws.blockchaincloudpoc-develop.com:15050?discport=0&raftport=15052"
+]
+    proxy:
+      provider: "ambassador"
+      external_url: wniki.rc.dev2.aws.blockchaincloudpoc-develop.com
+      portTM: 443
+      rpcport: 15051
+      quorumport: 15050
+      clientport: 8888
+    storage:
+      storageclassname: awsstorageclass
+      storagesize: 1Gi
+      dbstorage: 1Gi
