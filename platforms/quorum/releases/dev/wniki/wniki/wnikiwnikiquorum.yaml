@@ -1,0 +1,85 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: wnikiwnikiquorum
+  namespace: wniki-quo
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: wnikiwnikiquorum
+  helmVersion: v3
+  chart:
+    git: https://github.com/nikhilayadav/bevel.git
+    ref: test
+    path: platforms/quorum/charts/node_quorum_member
+  values:
+    replicaCount: 1
+    metadata:
+      namespace: wniki-quo
+      labels:
+    images:
+      node: quorumengineering/quorum:21.4.2
+      alpineutils: index.docker.io/hyperledgerlabs/alpine-utils:1.0
+      tessera: quorumengineering/tessera:21.7.3
+      busybox: busybox
+      mysql: mysql/mysql-server:5.7
+    node:
+      name: wniki
+      status: default
+      consensus: ibft
+      subject: O=Warehouse,OU=Warehouse,L=42.36/-71.06/Boston,C=US
+      mountPath: /etc/quorum/qdata
+      imagePullSecret: regcred
+      keystore: keystore_1
+      
+      servicetype: ClusterIP
+      lock: false
+      ports:
+        rpc: 8546
+        tm: 443
+        quorum: 21000
+        db: 3306
+      dbname: demodb
+      mysqluser: demouser
+    vault:
+      address: http://vault.internal.dev2.aws.blockchaincloudpoc-develop.com:20001
+      secretprefix: secretsv2/data/wniki-quo/crypto/wniki
+      serviceaccountname: vault-auth
+      keyname: quorum
+      tm_keyname: transaction
+      role: vault-role
+      authpath: quorumwniki
+    tessera:
+      dburl: "jdbc:mysql://wniki-tessera:3306/demodb"
+      dbusername: demouser
+      url: "https://wniki.rc.dev2.aws.blockchaincloudpoc-develop.com:443"
+      clienturl: "http://wniki-tessera:8888" #TODO: Enable tls strict for q2t
+      othernodes:
+        - url: https://cniki.rc.dev2.aws.blockchaincloudpoc-develop.com
+        - url: https://mniki.rc.dev2.aws.blockchaincloudpoc-develop.com
+        - url: https://sniki.rc.dev2.aws.blockchaincloudpoc-develop.com
+        - url: https://wniki.rc.dev2.aws.blockchaincloudpoc-develop.com
+      tls: "STRICT"
+      trust: "TOFU"
+    genesis: ewogICJjb25maWciOiB7CiAgICAiY2hhaW5JZCI6IDEwLAogICAgImhvbWVzdGVhZEJsb2NrIjogMCwKICAgICJlaXAxNTBCbG9jayI6IDAsCiAgICAiZWlwMTUwSGFzaCI6ICIweDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAiLAogICAgImVpcDE1NUJsb2NrIjogMCwKICAgICJlaXAxNThCbG9jayI6IDAsCiAgICAiYnl6YW50aXVtQmxvY2siOiAwLAogICAgImNvbnN0YW50aW5vcGxlQmxvY2siOiAwLAogICAgInBldGVyc2J1cmdCbG9jayI6IDAsCiAgICAiaXN0YW5idWxCbG9jayI6IDAsCiAgICAiaXN0YW5idWwiOiB7CiAgICAgICJlcG9jaCI6IDMwMDAwLAogICAgICAicG9saWN5IjogMCwKICAgICAgImNlaWwyTmJ5M0Jsb2NrIjogMAogICAgfSwKICAgICJ0eG5TaXplTGltaXQiOiAxMjgsCiAgICAicWlwNzE0QmxvY2siOiAwLAogICAgImlzTVBTIjogZmFsc2UsCiAgICAiaXNRdW9ydW0iOiB0cnVlLAogICAgIm1heENvZGVTaXplQ29uZmlnIjogWwogICAgICB7CiAgICAgICAgImJsb2NrIjogMCwKICAgICAgICAic2l6ZSI6IDEyOAogICAgICB9CiAgICBdCiAgfSwKICAibm9uY2UiOiAiMHgwIiwKICAidGltZXN0YW1wIjogIjB4NjI0YzBjMTAiLAogICJleHRyYURhdGEiOiAiMHgwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwZjg5YWY4NTQ5NGFlZTc4MmI1ZGViMmRlNzk5NzdkMjAxZjVhYjU0OTc5NzZhMGVjMGI5NDQwYmVmYzM1ZmM1NTYzMTk2ZWM3MmFkYTRlODdmNWU1NTlkOGRkMjI5NDVmNGU2YWRjODE2Y2MyN2U3YWVmYWNhZDVmNjA4OWQ3NTdjYjBhNjA5NDMwNmIwMzllMWE2ODM3Mzg5OTYxMWQwOGNmMTNjM2RhMWVjY2M5OTFiODQxMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMGMwIiwKICAiZ2FzTGltaXQiOiAiMHhlMDAwMDAwMCIsCiAgImRpZmZpY3VsdHkiOiAiMHgxIiwKICAibWl4SGFzaCI6ICIweDYzNzQ2OTYzNjE2YzIwNjI3OTdhNjE2ZTc0Njk2ZTY1MjA2NjYxNzU2Yzc0MjA3NDZmNmM2NTcyNjE2ZTYzNjUiLAogICJjb2luYmFzZSI6ICIweDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAiLAogICJhbGxvYyI6IHsKICAgICIzMDZiMDM5ZTFhNjgzNzM4OTk2MTFkMDhjZjEzYzNkYTFlY2NjOTkxIjogewogICAgICAiYmFsYW5jZSI6ICIweDQ0NmMzYjE1Zjk5MjY2ODdkMmM0MDUzNGZkYjU2NDAwMDAwMDAwMDAwMCIKICAgIH0sCiAgICAiNDBiZWZjMzVmYzU1NjMxOTZlYzcyYWRhNGU4N2Y1ZTU1OWQ4ZGQyMiI6IHsKICAgICAgImJhbGFuY2UiOiAiMHg0NDZjM2IxNWY5OTI2Njg3ZDJjNDA1MzRmZGI1NjQwMDAwMDAwMDAwMDAiCiAgICB9LAogICAgIjVmNGU2YWRjODE2Y2MyN2U3YWVmYWNhZDVmNjA4OWQ3NTdjYjBhNjAiOiB7CiAgICAgICJiYWxhbmNlIjogIjB4NDQ2YzNiMTVmOTkyNjY4N2QyYzQwNTM0ZmRiNTY0MDAwMDAwMDAwMDAwIgogICAgfSwKICAgICJhZWU3ODJiNWRlYjJkZTc5OTc3ZDIwMWY1YWI1NDk3OTc2YTBlYzBiIjogewogICAgICAiYmFsYW5jZSI6ICIweDQ0NmMzYjE1Zjk5MjY2ODdkMmM0MDUzNGZkYjU2NDAwMDAwMDAwMDAwMCIKICAgIH0KICB9LAogICJudW1iZXIiOiAiMHgwIiwKICAiZ2FzVXNlZCI6ICIweDAiLAogICJwYXJlbnRIYXNoIjogIjB4MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIKfQ==
+    staticnodes: 
+      [
+    "enode://7d96f8f42d79dead52b5dfb052da711e2bb8d8a8694d93e97378bb7e76d9d6c6d7e07c2d2e8c22de5c07eee0d1ce40f0dc09d9de2fc160040b0de94209dd3ecf@cniki.rc.dev2.aws.blockchaincloudpoc-develop.com:15041?discport=0",
+    "enode://c4e6336ec2b8c969aac87a306cb304e295ec86d15e470116eb5ce387240fdd83310a089d387f2ef3f597ee11eb787667b3f6b6e118b5d6f2298369560e679532@validator1.rc.dev2.aws.blockchaincloudpoc-develop.com:15044?discport=0",
+    "enode://cd28ce45da0bae8244087437b417c2ccdb7beaefbe2509856db3b5e2f93df310fd40b4c7c44eee3fcbe9b249ab501f2d66243cd45689e6ce8d0477dbeae410af@mniki.rc.dev2.aws.blockchaincloudpoc-develop.com:15046?discport=0",
+    "enode://38cc422cb9ab941fd3e1382d6428a5e9920e47dd6d1da23351533b3d0d6611a29caf00e9ef7beab1ee99ea76ea418eee15a3b5380ae831112059c171312c4220@validator2.rc.dev2.aws.blockchaincloudpoc-develop.com:15049?discport=0",
+    "enode://d7e3c2b33be92aeaf0306e8f2e095571fc225f1d13ff2cd54f3e0418c7e587407541a21ef7f839a82e716927b63359b76352b49dbe354eb4fe97a3be2e9bcdd4@sniki.rc.dev2.aws.blockchaincloudpoc-develop.com:15051?discport=0",
+    "enode://f9bca97622d220a7c262ed716e821b5944e33be2568bf2c0157499d2d4a5864ab39c8f49c61d8ec41485ef960f61cfebb3cfe756b109e0072cd0a0cc4af653ee@validator3.rc.dev2.aws.blockchaincloudpoc-develop.com:15054?discport=0",
+    "enode://858419cd9140c325d512a0f58efac1fa3cbe88d917664f55139c12b8caee7dfc2105015878882a98c81eabd7c085e91e6432c855716e73ed88f9fb160f45d54b@wniki.rc.dev2.aws.blockchaincloudpoc-develop.com:15056?discport=0",
+    "enode://025af7176f5b74eee980470bb9097615ce9b8a164c95278abf0a0e10af9bddcbac1510dd59af6afd53853fedeae67a12b40ec7e6bf3d5450f4f607046aa2e87e@validator4.rc.dev2.aws.blockchaincloudpoc-develop.com:15059?discport=0"
+]
+    proxy:
+      provider: "ambassador"
+      external_url: wniki.rc.dev2.aws.blockchaincloudpoc-develop.com
+      portTM: 443
+      rpcport: 15057
+      quorumport: 15056
+    storage:
+      storageclassname: awsstorageclass
+      storagesize: 1Gi
+      dbstorage: 1Gi
